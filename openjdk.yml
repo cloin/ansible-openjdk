@@ -1,0 +1,8 @@
+---
+- name: Redeploy HelloWorld on OpenJDK
+  hosts: all
+  become: yes
+  roles:
+    - openjdk
+
+  

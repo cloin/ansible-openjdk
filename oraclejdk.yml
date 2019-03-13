@@ -1,0 +1,6 @@
+---
+- name: Install OracleJDK and build Hello World 
+  hosts: all
+  become: yes
+  roles:
+    - oraclejdk

@@ -1,0 +1,6 @@
+---
+- name: Run common tasks
+  hosts: all
+  become: yes
+  roles:
+    - common

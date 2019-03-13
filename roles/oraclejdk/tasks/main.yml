@@ -1,0 +1,69 @@
+---
+- name: Copy OracleJDK rpm to host
+  copy:
+    src: files/jdk-8u201-linux-x64.rpm
+    dest: /tmp/jdk-8u201-linux-x64.rpm
+
+- name: Install OracleJDK  
+  yum:
+   name: /tmp/jdk-8u201-linux-x64.rpm
+   state: present
+
+- name: Create symlinks for java, javac and jar
+  alternatives:
+    name: "{{ item.name }}"
+    link: "{{ item.link }}" 
+    path: "{{ item.path }}"
+    priority: "{{ item.priority }}"
+  loop:
+    - { name: 'java', link: '/usr/bin/java', path: '/usr/java/latest/jre/bin/java', priority: '200000' }
+    - { name: 'javac', link: '/usr/bin/javac', path: '/usr/java/latest/bin/javac', priority: '200000' }
+    - { name: 'jar', link: '/usr/bin/jar', path: '/usr/java/latest/bin/jar', priority: '200000' }
+
+- name: Set jdk
+  command: alternatives --set java /usr/java/jdk1.8.0_201-amd64/jre/bin/java
+
+- name: Start EAP in tmux session 
+  command: "{{ item }}"
+  become: yes
+  become_user: "{{ ansible_user }}"
+  ignore_errors: true
+  loop:
+    - tmux kill-session -t javademo
+    - tmux new -s javademo -d
+    - tmux set-option -g allow-rename off
+    - tmux rename-window -t javademo eap
+    - tmux send -t javademo '/home/{{ ansible_user }}/software/jboss-eap-7.2/bin/standalone.sh -b {{ ansible_facts['enp0s8']['ipv4']['address'] }}' C-m
+
+- name: Wait for EAP to start
+  command: /home/vagrant/software/jboss-eap-7.2/bin/jboss-cli.sh --connect --command="/interface=public:read-attribute(name=inet-address,resolve-expressions=true)"
+  register: result
+  until: result.failed != true and result.stdout.find('success') != -1
+  retries: 12
+  delay: 5
+  ignore_errors: yes
+
+- name: Maven deploy HelloWorld in tmux
+  command: "{{ item }}"
+  become: yes
+  become_user: "{{ ansible_user }}"
+  loop:
+    - tmux new-window -c /home/{{ ansible_user }}/software/jboss-eap-quickstarts/helloworld -t javademo
+    - tmux rename-window -t javademo maven
+    - tmux send -t javademo 'mvn clean package wildfly:deploy' C-m
+
+- name: Wait for app to deploy 
+  uri:
+    url: http://{{ ansible_facts.enp0s8.ipv4.address }}:8080/helloworld/HelloWorld
+    status_code: 200, 401, 403, 404, 502
+    return_content: yes
+    follow_redirects: all
+    validate_certs: no
+  register: result
+  until: result.status != -1 and result.content.find('Hello World') != -1
+  retries: 90
+  delay: 10
+
+- name: Finished!
+  debug:
+    msg: "http://{{ ansible_facts.enp0s8.ipv4.address }}:8080/helloworld"
