@@ -1,26 +1,27 @@
 ---
-- name: Copy EAP and quickstart zips to host
+- name: Copy EAP zip to host
   copy:
     src: files/{{ item }}
     dest: /tmp/{{ item }}
   loop:
-    - jboss-eap-7.2.0.zip
+    - "{{ eap_zip }}"
+
 
 - name: Create EAP directories
   file:
     path: "{{ item }}"
     state: directory
-    owner: "{{ ansible_user }}"
-    group: "{{ ansible_user }}"
+    owner: "{{ user }}"
+    group: "{{ user }}"
   loop:
-    - /home/{{ ansible_user }}/software/
+    - "{{ software_dir }}" 
     
 - name: Checkout modified HelloWorld quickstart
   git:
     repo: 'https://github.com/mmistretta/jboss-eap-quickstarts.git'
-    dest: /home/{{ ansible_user }}/software/jboss-eap-quickstarts
+    dest: "{{ software_dir }}/jboss-eap-quickstarts"
   become: yes
-  become_user: "{{ ansible_user }}"
+  become_user: "{{ user }}"
 
 - name: Add Maven repo
   yum_repository:
@@ -31,25 +32,21 @@
     gpgcheck: no
     enabled: yes
 
-- name: Install Maven
-  yum:
-    name: apache-maven
-    state: present
-
-- name: Install unzip and tmux
+- name: Install maven unzip and tmux
   yum:
     name: "{{ item }}"
-    state: latest
+    state: present
   loop:
     - unzip
     - tmux
+    - apache-maven
 
 - name: Unzip EAP
   unarchive:
     src: "{{ item.path }}"
-    dest: /home/{{ ansible_user }}/software/
-    owner: "{{ ansible_user }}"
+    dest: "{{ software_dir }}" 
+    owner: "{{ user }}"
     remote_src: yes
   loop:
-    - { name: 'jboss-eap', path: '/tmp/jboss-eap-7.2.0.zip' }
+    - { name: 'jboss-eap', path: '/tmp/{{ eap_zip }}' }
 
