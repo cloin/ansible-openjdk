@@ -1,0 +1,14 @@
+# User running EAP
+user: "{{ ansible_user }}"
+# Where EAP will be unzipped to
+software_dir: /home/{{ user }}/software
+# Zip file name for EAP
+eap_zip: jboss-eap-7.2.0.zip
+# Name of the dir created from unzipping eap_zip
+eap_unzipped: jboss-eap-7.2
+# Oracle JDK rpm name
+oracle_rpm: jdk-8u201-linux-x64.rpm
+# The interface EAP will run on
+net_interface: enp0s8
+# IP of net_interface
+net_interface_ip: "{{ ansible_facts[net_interface].ipv4.address }}"

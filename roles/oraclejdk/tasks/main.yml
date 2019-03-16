@@ -1,12 +1,12 @@
 ---
 - name: Copy OracleJDK rpm to host
   copy:
-    src: files/jdk-8u201-linux-x64.rpm
-    dest: /tmp/jdk-8u201-linux-x64.rpm
+    src: files/{{ oracle_rpm }}
+    dest: /tmp/{{ oracle_rpm }}
 
 - name: Install OracleJDK  
   yum:
-   name: /tmp/jdk-8u201-linux-x64.rpm
+   name: /tmp/{{ oracle_rpm }}
    state: present
 
 - name: Create symlinks for java, javac and jar
@@ -26,17 +26,17 @@
 - name: Start EAP in tmux session 
   command: "{{ item }}"
   become: yes
-  become_user: "{{ ansible_user }}"
+  become_user: "{{ user }}"
   ignore_errors: true
   loop:
     - tmux kill-session -t javademo
     - tmux new -s javademo -d
     - tmux set-option -g allow-rename off
     - tmux rename-window -t javademo eap
-    - tmux send -t javademo '/home/{{ ansible_user }}/software/jboss-eap-7.2/bin/standalone.sh -b {{ ansible_facts['enp0s8']['ipv4']['address'] }}' C-m
+    - tmux send -t javademo '{{ software_dir}}/{{ eap_unzipped }}/bin/standalone.sh -b {{ net_interface_ip }}' C-m
 
 - name: Wait for EAP to start
-  command: /home/vagrant/software/jboss-eap-7.2/bin/jboss-cli.sh --connect --command="/interface=public:read-attribute(name=inet-address,resolve-expressions=true)"
+  command: "{{ software_dir }}/{{ eap_unzipped }}/bin/jboss-cli.sh --connect --command='/interface=public:read-attribute(name=inet-address,resolve-expressions=true)'"
   register: result
   until: result.failed != true and result.stdout.find('success') != -1
   retries: 12
@@ -46,15 +46,16 @@
 - name: Maven deploy HelloWorld in tmux
   command: "{{ item }}"
   become: yes
-  become_user: "{{ ansible_user }}"
+  become_user: "{{ user }}"
   loop:
-    - tmux new-window -c /home/{{ ansible_user }}/software/jboss-eap-quickstarts/helloworld -t javademo
+    - tmux new-window 
+    - tmux send -t javademo 'cd {{ software_dir }}/jboss-eap-quickstarts/helloworld' C-m
     - tmux rename-window -t javademo maven
     - tmux send -t javademo 'mvn clean package wildfly:deploy' C-m
 
 - name: Wait for app to deploy 
   uri:
-    url: http://{{ ansible_facts.enp0s8.ipv4.address }}:8080/helloworld/HelloWorld
+    url: http://{{ net_interface_ip }}:8080/helloworld/HelloWorld
     status_code: 200, 401, 403, 404, 502
     return_content: yes
     follow_redirects: all
@@ -66,4 +67,4 @@
 
 - name: Finished!
   debug:
-    msg: "http://{{ ansible_facts.enp0s8.ipv4.address }}:8080/helloworld"
+    msg: "http://{{ net_interface_ip }}:8080/helloworld"
