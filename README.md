@@ -9,4 +9,9 @@ tmux is installed and EAP and Maven deploy is run inside their own windows. ssh 
 - `ctrl+b d` will detach you from the tmux session
 - `tmux kill-session -t javademo` will destroy the tmux session and kill the processes running in that session (EAP and maven)
 
+Demonstration:
+- `ansible -i inventory common.yml`
+- `ansible -i inventory oraclejdk.yml`
+- `ansible -i inventory openjdk.yml`
+
 ![gif of helloworld app](https://github.com/cloin/ansible-openjdk/blob/master/openjdk.gif?raw=true)
