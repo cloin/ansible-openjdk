@@ -21,7 +21,7 @@
     - { name: 'jar', link: '/usr/bin/jar', path: '/usr/java/latest/bin/jar', priority: '200000' }
 
 - name: Set jdk
-  command: alternatives --set java /usr/java/jdk1.8.0_201-amd64/jre/bin/java
+  command: alternatives --set java {{ oracle_java_path }}
 
 - name: Start EAP in tmux session 
   command: "{{ item }}"

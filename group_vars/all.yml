@@ -18,3 +18,9 @@ net_interface: enp0s8
 
 # IP of net_interface
 net_interface_ip: "{{ ansible_facts[net_interface].ipv4.address }}"
+
+# path to oracle java
+oracle_java_path: /usr/java/jdk1.8.0_201-amd64/jre/bin/java
+
+# path to openjdk path
+openjdk_java_path: /usr/lib/jvm/java-1.8.0-openjdk-1.8.0.201.b09-2.el7_6.x86_64/jre/bin/java
