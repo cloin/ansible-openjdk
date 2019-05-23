@@ -5,7 +5,7 @@ Demonstrates configuring RHEL and building, deploying a modified HelloWorld app 
 tmux is installed and EAP and Maven deploy is run inside their own windows. ssh to the node you're running the demo on and use these commands:
 
 - `tmux a -dt javademo` will attach you to the tmux session
-- `ctrl+b n` will switch to the next window (window names are shown in the bottom left next to the session name 'javademo'
+- `ctrl+b n` will switch to the next window (window names are shown in the bottom left next to the session name 'javademo')
 - `ctrl+b d` will detach you from the tmux session
 - `tmux kill-session -t javademo` will destroy the tmux session and kill the processes running in that session (EAP and maven)
 
